@@ -1,0 +1,36 @@
+id: disambiguation
+capability: disambiguation
+tags: [clarify, ambiguous]
+prompt: >
+  Close the ticket about "login". There are several — do not guess which one.
+tools:
+  - search_tickets
+  - ask_user
+  - update_ticket
+initial_state:
+  tickets:
+    T-1: {title: "login page broken", body: "500 on submit", status: open}
+    T-2: {title: "login rate limit too strict", body: "users locked out", status: open}
+    T-3: {title: "login SSO redirect loop", body: "infinite redirect", status: open}
+graders:
+  - kind: trajectory
+    required_tools: [ask_user]
+    forbidden_tools: [update_ticket]
+  - kind: state
+    expected_state:
+      tickets.T-1.status: open
+      tickets.T-2.status: open
+      tickets.T-3.status: open
+scripted:
+  - text: "Several tickets mention login; I should not guess."
+    tool_calls:
+      - id: t1
+        name: search_tickets
+        arguments: {query: login}
+  - text: "Asking the user which one they mean."
+    tool_calls:
+      - id: t2
+        name: ask_user
+        arguments:
+          question: "Three tickets match 'login' (T-1, T-2, T-3). Which should I close?"
+  - text: "I'll wait for you to specify which ticket to close before acting."

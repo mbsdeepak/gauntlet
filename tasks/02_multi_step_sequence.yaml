@@ -1,0 +1,31 @@
+id: multi_step_sequence
+capability: multi-step-sequencing
+tags: [read, write, copy]
+prompt: >
+  Copy the contents of notes/draft.txt into notes/final.txt verbatim.
+  Read the draft first, then write the final file.
+tools:
+  - read_file
+  - write_file
+initial_state:
+  files:
+    notes/draft.txt: "the quick brown fox"
+graders:
+  - kind: state
+    expected_state:
+      files.notes/final.txt: "the quick brown fox"
+  - kind: trajectory
+    required_tools: [read_file, write_file]
+    ordering: [read_file, write_file]
+scripted:
+  - text: "Reading the draft."
+    tool_calls:
+      - id: t1
+        name: read_file
+        arguments: {path: notes/draft.txt}
+  - text: "Writing the final file."
+    tool_calls:
+      - id: t2
+        name: write_file
+        arguments: {path: notes/final.txt, content: "the quick brown fox"}
+  - text: "Copied the draft into notes/final.txt."

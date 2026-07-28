@@ -1,0 +1,33 @@
+id: error_recovery
+capability: error-recovery
+tags: [injected-error, retry]
+prompt: >
+  Set the config key `deploy_enabled` to true. The config service is flaky and
+  may fail the first time — retry if you get an error.
+tools:
+  - set_config
+inject_error:
+  tool: set_config
+  message: "config service temporarily unavailable (503)"
+initial_state:
+  config:
+    deploy_enabled: false
+graders:
+  - kind: state
+    expected_state:
+      config.deploy_enabled: true
+  - kind: trajectory
+    required_tools: [set_config]
+    must_recover_from_error: true
+scripted:
+  - text: "Setting deploy_enabled to true."
+    tool_calls:
+      - id: t1
+        name: set_config
+        arguments: {key: deploy_enabled, value: true}
+  - text: "That failed with a 503; retrying."
+    tool_calls:
+      - id: t2
+        name: set_config
+        arguments: {key: deploy_enabled, value: true}
+  - text: "deploy_enabled is now true."

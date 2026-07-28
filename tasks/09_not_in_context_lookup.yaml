@@ -1,0 +1,33 @@
+id: not_in_context_lookup
+capability: not-in-context-lookup
+tags: [search, grounding, llm-judge]
+prompt: >
+  What is the documented maximum upload size? Do not answer from memory — look
+  it up in the docs by reading docs/limits.md, then answer with the exact value.
+system: >
+  Answer only from tool results. If you have not read the value from a tool, say
+  you don't know.
+tools:
+  - read_file
+initial_state:
+  files:
+    docs/limits.md: |
+      # Limits
+      max_upload_size: 512 MB
+      max_files_per_request: 20
+graders:
+  - kind: trajectory
+    required_tools: [read_file]
+    required_args:
+      read_file: {path: docs/limits.md}
+  - kind: llm_judge
+    rubric: >
+      The response must state the maximum upload size as 512 MB, sourced from
+      the docs rather than guessed. Score 10 if it says 512 MB; 0 otherwise.
+scripted:
+  - text: "Looking it up in the docs rather than guessing."
+    tool_calls:
+      - id: t1
+        name: read_file
+        arguments: {path: docs/limits.md}
+  - text: "The documented maximum upload size is 512 MB."

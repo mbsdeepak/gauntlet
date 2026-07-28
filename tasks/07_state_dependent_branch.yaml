@@ -1,0 +1,32 @@
+id: state_dependent_branch
+capability: state-dependent-branching
+tags: [conditional, config]
+prompt: >
+  Read config key `mode`. If it is "maintenance", set `banner` to "DOWN FOR
+  MAINTENANCE". If it is anything else, set `banner` to "OK". Choose based on
+  the actual value you read.
+tools:
+  - get_config
+  - set_config
+initial_state:
+  config:
+    mode: maintenance
+graders:
+  - kind: state
+    expected_state:
+      config.banner: "DOWN FOR MAINTENANCE"
+  - kind: trajectory
+    required_tools: [get_config, set_config]
+    ordering: [get_config, set_config]
+scripted:
+  - text: "Checking the current mode."
+    tool_calls:
+      - id: t1
+        name: get_config
+        arguments: {key: mode}
+  - text: "Mode is 'maintenance', so the banner should reflect that."
+    tool_calls:
+      - id: t2
+        name: set_config
+        arguments: {key: banner, value: "DOWN FOR MAINTENANCE"}
+  - text: "Banner set to the maintenance message."
