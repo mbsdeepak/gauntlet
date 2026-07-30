@@ -162,9 +162,34 @@ is how the graders stay self-consistent.)
   seams but would add surface area without changing what the project
   demonstrates.
 
-## Companion
+## The platform
 
-Pairs with the companion harness repo **`cogs`**.
+`gauntlet` is one repo in a five-part **agent platform**. Each owns a single
+concern, stands alone, and shares the same spine: a normalized, Bedrock-default
+provider seam and deterministic, fully-offline tests.
+
+| Repo | Concern |
+|------|---------|
+| [`cogs`](https://github.com/mbsdeepak/cogs) | the agent **runtime** — the loop, tool protocol, provider seam, record/replay |
+| [`bulkhead`](https://github.com/mbsdeepak/bulkhead) | reliable **serving** — a gateway (retries, circuit breaking, rate limits, caching, failover, budgets) in front of any provider |
+| [`loom`](https://github.com/mbsdeepak/loom) | **context** engineering — retrieve, compact, and assemble what goes in the window |
+| [`sonar`](https://github.com/mbsdeepak/sonar) | **observability** — reconstruct a run as a cost/latency timeline |
+| [`gauntlet`](https://github.com/mbsdeepak/gauntlet) | **evaluation** — hermetic tool-use tasks scored with pass@k + confidence intervals **← this repo** |
+
+How work flows through them:
+
+```
+loom ──assemble context──▶ cogs ──model calls──▶ bulkhead ──▶ provider
+                            │
+              run cassette ─┴──▶ sonar (timeline, cost)
+              eval result ─────▶ gauntlet (pass@k)
+```
+
+The seams are real, not aspirational: `cogs`, `bulkhead`, and `loom` all speak the
+same normalized `Provider`/message types, and `sonar` ingests `gauntlet` results
+directly — `sonar report` turns a `gauntlet` run into a cost/latency rollup. The
+[`sonar` README](https://github.com/mbsdeepak/sonar#run-it-combined) has the
+one-command combined demo.
 
 ## License
 
